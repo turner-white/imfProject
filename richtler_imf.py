@@ -65,10 +65,10 @@ def circlePack2D(tol, r_tot, r_min, r_max):
     return radii, xlist, ylist
 
 def main():
-    tol = 0.5
+    tol = 0.45
     r_tot = 1000
-    r_max = 100
-    r_min = 1
+    r_max = 50
+    r_min = 2
     r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
     plt.figure(0)
     # plt.hist(r)
@@ -89,9 +89,10 @@ def main():
         N_diff.append(N[i-1]-N[i])
     N_diff = abs(np.array(N_diff))
 
-    maxVal = np.where(N_diff == 0)[0][0]
-    log_m = np.log(m[0:maxVal])
-    log_N = np.log(N_diff[0:maxVal])
+    nonZero = np.where(N_diff != 0)[0]
+    print(nonZero)
+    log_m = np.log(m[nonZero])
+    log_N = np.log(N_diff[nonZero])
     log_m = log_m[log_N != 0]
     log_N = log_N[log_N != 0]
 
