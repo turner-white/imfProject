@@ -28,9 +28,11 @@ def circlePack2D(tol, r_tot, r_min, r_max):
         # choose a random x such that it falls within the boundary circle
         uniformRandomX = np.random.rand()
         x = uniformRandomX * 2 * r_tot
+        #x = np.random.normal(100, 20)
 
         # now generate a y value over the range of the vertical chord passing through our random x value
         uniformRandomY = np.random.rand()
+        #normalRandomY = np.random.normal(-0.2,0.2)
         chordLength = 2 * (r_tot ** 2 - (np.abs(r_tot - x)) ** 2) ** 0.5
         y = (uniformRandomY * chordLength) + (0.5 * (2 * r_tot - chordLength))
 
@@ -63,39 +65,42 @@ def circlePack2D(tol, r_tot, r_min, r_max):
     return radii, xlist, ylist
 
 def main():
-    tol = 0.7
-    r_tot = 100
-    r_max = 50
-    r_min = 2
+    tol = 0.5
+    r_tot = 1000
+    r_max = 100
+    r_min = 1
     r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
     plt.figure(0)
     # plt.hist(r)
 
     # graphs log/log plot and finds alpha value
-    m = np.arange(r_min, r_max, 1)
+    m = np.arange(r_min**2, r_max**2, 1)
     N = []
-    for i in range(r_min, r_max):
+    for i in m:
         Ncount = 0
         for j in range(len(r)):
-            if i < r[j] < i + 1:
+            if i < r[j]**2 < i + 1:
                 Ncount += 1
         N.append(Ncount)
     N = np.array(N)
+
     N_diff = []
     for i in range(1,len(N)-1):
         N_diff.append(N[i-1]-N[i])
     N_diff = abs(np.array(N_diff))
 
     maxVal = np.where(N_diff == 0)[0][0]
-    log_m = np.log(m[0:maxVal] ** 2)
+    log_m = np.log(m[0:maxVal])
     log_N = np.log(N_diff[0:maxVal])
     log_m = log_m[log_N != 0]
     log_N = log_N[log_N != 0]
 
+
     plt.scatter(log_m, log_N)
     p = np.poly1d(np.polyfit(log_m, log_N, 1))
     alpha = p.coefficients[0]
-    print("Alpha = ", alpha)
+    y_int = p.coefficients[1]
+    print("Alpha = ", alpha, "\nIntercept = ", y_int)
     plt.plot(log_m, p(log_m))
     plt.show()
 
@@ -109,5 +114,49 @@ def main():
         plt.gca().add_artist(c)
     plt.axis("equal")
     plt.show()
+
+
+def getAlpha(fillingFactor):
+    tol = fillingFactor
+    r_tot = 100
+    r_max = 50
+    r_min = 2
+    r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
+    # plt.hist(r)
+
+    # graphs log/log plot and finds alpha value
+    m = np.arange(r_min ** 2, r_max ** 2, 1)
+    N = []
+    for i in range(r_min ** 2, r_max ** 2):
+        Ncount = 0
+        for j in range(len(r)):
+            if i < r[j] ** 2 < i + 1:
+                Ncount += 1
+        N.append(Ncount)
+    N = np.array(N)
+    N_diff = []
+    for i in range(1, len(N) - 1):
+        N_diff.append(N[i - 1] - N[i])
+    N_diff = abs(np.array(N_diff))
+
+    maxVal = np.where(N_diff == 0)[0][0]
+    log_m = np.log(m[0:maxVal])
+    log_N = np.log(N_diff[0:maxVal])
+    # log_m = log_m[log_N != 0]
+    # log_N = log_N[log_N != 0]
+
+    p = np.poly1d(np.polyfit(log_m, log_N, 1))
+    alpha = p.coefficients[0]
+    return alpha
+
+
+alphas = []
+# for i in range(4,8):
+#     tempAlphas = []
+#     for j in range(1,100):
+#         tempAlphas.append(getAlpha(i/10))
+#     alphas.append(np.average(np.array(tempAlphas)))
+# print(alphas)
+
 
 main()
