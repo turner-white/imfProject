@@ -12,9 +12,6 @@ class Circle:
     def area(self):
         return np.pi * (self.r ** 2)
 
-    def mass(self):
-        return
-
 
 def circlePack2D(tol, r_tot, r_min, r_max, density, temp):
     totalArea = np.pi * r_tot ** 2
@@ -28,7 +25,7 @@ def circlePack2D(tol, r_tot, r_min, r_max, density, temp):
     if density == "normal" or density == "Normal":
         totalArea = 0.7*totalArea
     if density == "cauchy" or density == "Cauchy":
-        totalArea = 0.6*totalArea
+        totalArea = 0.7*totalArea
     # iterate until the area is filled up to our tolerance percentage
     while filledArea / totalArea <= tol:
         validLocation = True
@@ -78,17 +75,7 @@ def circlePack2D(tol, r_tot, r_min, r_max, density, temp):
                 tempMaxR = dist
         # now we randomly choose a radius value between r_min and maxDist
         if validLocation:
-            if temp == "low" or temp == "Low":
-                randomR = np.random.normal(0.3,0.2)
-                randomR = 1 if randomR > 1 else randomR
-                randomR = 0 if randomR < 0 else randomR
-            elif temp == "med" or temp == "Med":
-                randomR = np.random.rand()
-            elif temp == "high" or temp == "High":
-                randomR = np.random.normal(0.7,0.2)
-                randomR = 1 if randomR > 1 else randomR
-                randomR = 0 if randomR < 0 else randomR
-
+            randomR = np.random.rand()
             r = randomR * (tempMaxR - r_min) + r_min
             # print(r)
             circle = Circle(r, x, y)
@@ -101,8 +88,8 @@ def circlePack2D(tol, r_tot, r_min, r_max, density, temp):
     return radii, xlist, ylist
 
 def main():
-    tol = 0.7
-    temp = input("Choose a gas cloud temperature (low,med,high): ") # temperature in Kelvin
+    tol = 0.73
+    temp = input("Choose a gas cloud temperature (low,med,high): ")  # temperature in Kelvin
     density = input("Choose a density profile (uniform, normal, cauchy): ")
 
     r_tot = 500
@@ -118,7 +105,6 @@ def main():
         r_max = 100
 
     r, x, y = circlePack2D(tol, r_tot, r_min, r_max, density, temp)
-
 
     # graphs log/log plot and finds alpha value
     # Delta m
@@ -148,15 +134,19 @@ def main():
     log_N = np.log(NNoZero[0:lessOnes])
     # N_plot = N_diff[noZeroMask]
     # m_plot = m[noZeroMask]
-
-    plt.figure(0)
+    fig, ax = plt.subplots()
     plt.scatter(log_m, log_N)
 
     p = np.poly1d(np.polyfit(log_m, log_N, 1))
     alpha = p.coefficients[0]
-    y_int = p.coefficients[1]
-    print("Alpha = ", alpha, "\nIntercept = ", y_int)
+    print("Alpha = ", alpha)
     plt.plot(log_m, p(log_m))
+    plt.title("Linear fit for IMF alpha parameter for " + temp + " temp & " + density + " density")
+
+    textstr = "Alpha = " + str(np.round(alpha,2))
+    ax.text(0.75,0.95, textstr, transform=ax.transAxes, fontsize=12, verticalalignment='top')
+    plt.xlabel("log m")
+    plt.ylabel("log (dN/dm)")
     plt.show()
 
     plt.figure(1)
@@ -168,6 +158,9 @@ def main():
         c = patches.Circle((x[i], y[i]), r[i], fill=False)
         plt.gca().add_artist(c)
     plt.axis("equal")
+    plt.title("Circle packing for " + temp + " temp & " + density + " density")
+    plt.xlabel("x")
+    plt.ylabel("y")
     plt.show()
 
 
@@ -217,16 +210,24 @@ def getAlpha(fillingFactor):
     alpha = p.coefficients[0]
     return -1*alpha
 
-# alphas = []
-# tols = [0.4, 0.5, 0.6, 0.65, 0.7, 0.75]
-# for i in tols:
-#     tempAlphas = []
-#     for j in range(1,5):
-#         tempAlphas.append(getAlpha(i))
-#     alphas.append(np.average(np.array(tempAlphas)))
-# plt.scatter(tols, alphas)
-# plt.show()
-# print(alphas)
+alphas = []
+tols = np.arange(0.3, 0.9, 0.025)
+for i in tols:
+    tempAlphas = []
+    if i < 0.525:
+        for j in range(1, 10):
+            tempAlphas.append(getAlpha(i))
+        alphas.append(np.average(np.array(tempAlphas)))
+    elif 0.725 > i > 0.5:
+        for j in range(1):
+            tempAlphas.append(getAlpha(i))
+        alphas.append(np.average(np.array(tempAlphas)))
+    else:
+        tempAlphas.append(getAlpha(i))
+        alphas.append(np.array(tempAlphas))
+plt.scatter(tols, alphas)
+plt.show()
+print(alphas)
 
 
 
