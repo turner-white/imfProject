@@ -12,10 +12,14 @@ class Circle:
     def area(self):
         return np.pi * (self.r ** 2)
 
+    def mass(self):
+        return
+
 
 def circlePack2D(tol, r_tot, r_min, r_max):
     totalArea = np.pi * r_tot ** 2
     filledArea = 0
+
     circles = []
     radii = []
     xlist = []
@@ -65,38 +69,49 @@ def circlePack2D(tol, r_tot, r_min, r_max):
     return radii, xlist, ylist
 
 def main():
-    tol = 0.5
-    r_tot = 1000
-    r_max = 100
+    tol = 0.72
+    temp = 20 # temperature in Kelvin
+    rho = 1408
+
+    r_tot = 200
+    r_max = 50
     r_min = 1
+
     r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
-    plt.figure(0)
-    # plt.hist(r)
+
 
     # graphs log/log plot and finds alpha value
+    # Delta m
     m = np.arange(r_min**2, r_max**2, 1)
+    dm = m[1]-m[0]
     N = []
-    for i in m:
+    for mass in m:
         Ncount = 0
         for j in range(len(r)):
-            if i < r[j]**2 < i + 1:
+            if mass <= r[j]**2 < mass + dm:
                 Ncount += 1
         N.append(Ncount)
     N = np.array(N)
 
     N_diff = []
-    for i in range(1,len(N)-1):
+    for i in range(1, len(N)):
         N_diff.append(N[i-1]-N[i])
+    N_diff.append(0)
     N_diff = abs(np.array(N_diff))
 
-    maxVal = np.where(N_diff == 0)[0][0]
-    log_m = np.log(m[0:maxVal])
-    log_N = np.log(N_diff[0:maxVal])
-    log_m = log_m[log_N != 0]
-    log_N = log_N[log_N != 0]
+    noZeroMask = N_diff > 0
+    mNoZero = m[noZeroMask]
+    NNoZero = N_diff[noZeroMask]
+    lessOnes = np.where(NNoZero == 1)[0][5]
 
+    log_m = np.log(mNoZero[0:lessOnes])
+    log_N = np.log(NNoZero[0:lessOnes])
+    # N_plot = N_diff[noZeroMask]
+    # m_plot = m[noZeroMask]
 
+    plt.figure(0)
     plt.scatter(log_m, log_N)
+
     p = np.poly1d(np.polyfit(log_m, log_N, 1))
     alpha = p.coefficients[0]
     y_int = p.coefficients[1]
@@ -116,41 +131,44 @@ def main():
     plt.show()
 
 
-def getAlpha(fillingFactor):
-    tol = fillingFactor
-    r_tot = 100
-    r_max = 50
-    r_min = 2
-    r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
-    # plt.hist(r)
+# def getAlpha(fillingFactor):
+#     tol = fillingFactor
+#
+#     r_tot = 200
+#     r_max = 50
+#     r_min = 1
+#
+#     r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
+#
+#     m = np.linspace(r_min**2, r_max**2, 20)
+#     dm = m[1]-m[0]
+#     N = []
+#     for mass in m:
+#         Ncount = 0
+#         for j in range(len(r)):
+#             if mass <= r[j]**2 < mass + dm:
+#                 Ncount += 1
+#         N.append(Ncount)
+#     N = np.array(N)
+#
+#     N_diff = []
+#     for i in range(1, len(N)):
+#         N_diff.append(N[i-1]-N[i])
+#     N_diff.append(0)
+#     N_diff = abs(np.array(N_diff))
+#
+#     noZeroMask = N_diff > 0
+#     N_plot = N_diff[noZeroMask]
+#     m_plot = m[noZeroMask]
+#
+#     log_m = np.log(m_plot)
+#     log_N = np.log(N_plot)
+#
+#     p = np.poly1d(np.polyfit(log_m, log_N, 1))
+#     alpha = p.coefficients[0]
+#     return alpha
 
-    # graphs log/log plot and finds alpha value
-    m = np.arange(r_min ** 2, r_max ** 2, 1)
-    N = []
-    for i in range(r_min ** 2, r_max ** 2):
-        Ncount = 0
-        for j in range(len(r)):
-            if i < r[j] ** 2 < i + 1:
-                Ncount += 1
-        N.append(Ncount)
-    N = np.array(N)
-    N_diff = []
-    for i in range(1, len(N) - 1):
-        N_diff.append(N[i - 1] - N[i])
-    N_diff = abs(np.array(N_diff))
-
-    maxVal = np.where(N_diff == 0)[0][0]
-    log_m = np.log(m[0:maxVal])
-    log_N = np.log(N_diff[0:maxVal])
-    # log_m = log_m[log_N != 0]
-    # log_N = log_N[log_N != 0]
-
-    p = np.poly1d(np.polyfit(log_m, log_N, 1))
-    alpha = p.coefficients[0]
-    return alpha
-
-
-alphas = []
+# alphas = []
 # for i in range(4,8):
 #     tempAlphas = []
 #     for j in range(1,100):
