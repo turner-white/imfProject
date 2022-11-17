@@ -16,7 +16,7 @@ class Circle:
         return
 
 
-def circlePack2D(tol, r_tot, r_min, r_max):
+def circlePack2D(tol, r_tot, r_min, r_max, density, temp):
     totalArea = np.pi * r_tot ** 2
     filledArea = 0
 
@@ -24,21 +24,43 @@ def circlePack2D(tol, r_tot, r_min, r_max):
     radii = []
     xlist = []
     ylist = []
+
+    if density == "normal" or density == "Normal":
+        totalArea = 0.7*totalArea
+    if density == "cauchy" or density == "Cauchy":
+        totalArea = 0.6*totalArea
     # iterate until the area is filled up to our tolerance percentage
     while filledArea / totalArea <= tol:
         validLocation = True
         print(filledArea / totalArea)
         # generate a new circle with a random radius between R_min and R_max
         # choose a random x such that it falls within the boundary circle
-        uniformRandomX = np.random.rand()
-        x = uniformRandomX * 2 * r_tot
-        #x = np.random.normal(100, 20)
+
+        if density == "uniform" or density == "Uniform":
+            randomX = np.random.rand()
+            randomY = np.random.rand()
+        elif density == "normal" or density == "Normal":
+            randomX = np.random.normal(0.5, 0.1)
+            randomY = np.random.normal(0.5, 0.1)
+            randomX = 1 if randomX > 1 else randomX
+            randomX = 0 if randomX < 0 else randomX
+            randomY = 1 if randomY > 1 else randomY
+            randomY = 0 if randomY < 0 else randomY
+        elif density == "cauchy" or density == "Cauchy":
+            randomX = np.random.standard_cauchy(1)/10
+            randomY = np.random.standard_cauchy(1)/10
+            randomX = 1 if randomX > 1 else randomX
+            randomX = 0 if randomX < 0 else randomX
+            randomY = 1 if randomY > 1 else randomY
+            randomY = 0 if randomY < 0 else randomY
+
+        x = randomX * 2 * r_tot
 
         # now generate a y value over the range of the vertical chord passing through our random x value
-        uniformRandomY = np.random.rand()
+        #uniformRandomY = np.random.rand()
         #normalRandomY = np.random.normal(-0.2,0.2)
         chordLength = 2 * (r_tot ** 2 - (np.abs(r_tot - x)) ** 2) ** 0.5
-        y = (uniformRandomY * chordLength) + (0.5 * (2 * r_tot - chordLength))
+        y = (randomY * chordLength) + (0.5 * (2 * r_tot - chordLength))
 
         edgeDist = r_tot - (((x - r_tot) ** 2 + (y - r_tot) ** 2) ** 0.5)
         if edgeDist < r_min:
@@ -56,8 +78,18 @@ def circlePack2D(tol, r_tot, r_min, r_max):
                 tempMaxR = dist
         # now we randomly choose a radius value between r_min and maxDist
         if validLocation:
-            uniformRandomR = np.random.rand()
-            r = uniformRandomR * (tempMaxR - r_min) + r_min
+            if temp == "low" or temp == "Low":
+                randomR = np.random.normal(0.3,0.2)
+                randomR = 1 if randomR > 1 else randomR
+                randomR = 0 if randomR < 0 else randomR
+            elif temp == "med" or temp == "Med":
+                randomR = np.random.rand()
+            elif temp == "high" or temp == "High":
+                randomR = np.random.normal(0.7,0.2)
+                randomR = 1 if randomR > 1 else randomR
+                randomR = 0 if randomR < 0 else randomR
+
+            r = randomR * (tempMaxR - r_min) + r_min
             # print(r)
             circle = Circle(r, x, y)
             circles.append(circle)
@@ -69,15 +101,23 @@ def circlePack2D(tol, r_tot, r_min, r_max):
     return radii, xlist, ylist
 
 def main():
-    tol = 0.72
-    temp = 20 # temperature in Kelvin
-    rho = 1408
+    tol = 0.7
+    temp = input("Choose a gas cloud temperature (low,med,high): ") # temperature in Kelvin
+    density = input("Choose a density profile (uniform, normal, cauchy): ")
 
-    r_tot = 200
-    r_max = 50
-    r_min = 1
+    r_tot = 500
 
-    r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
+    if temp == "low" or temp == "Low":
+        r_min = 1
+        r_max = 40
+    elif temp == "med" or temp == "Med":
+        r_min = 2
+        r_max = 60
+    elif temp == "high" or temp == "High":
+        r_min = 5
+        r_max = 100
+
+    r, x, y = circlePack2D(tol, r_tot, r_min, r_max, density, temp)
 
 
     # graphs log/log plot and finds alpha value
@@ -177,17 +217,17 @@ def getAlpha(fillingFactor):
     alpha = p.coefficients[0]
     return -1*alpha
 
-alphas = []
-tols = [0.4, 0.5, 0.6, 0.65, 0.7, 0.75]
-for i in tols:
-    tempAlphas = []
-    for j in range(1,5):
-        tempAlphas.append(getAlpha(i))
-    alphas.append(np.average(np.array(tempAlphas)))
-plt.scatter(tols, alphas)
-plt.show()
-print(alphas)
+# alphas = []
+# tols = [0.4, 0.5, 0.6, 0.65, 0.7, 0.75]
+# for i in tols:
+#     tempAlphas = []
+#     for j in range(1,5):
+#         tempAlphas.append(getAlpha(i))
+#     alphas.append(np.average(np.array(tempAlphas)))
+# plt.scatter(tols, alphas)
+# plt.show()
+# print(alphas)
 
 
 
-#main()
+main()
