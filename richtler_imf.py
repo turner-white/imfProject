@@ -131,50 +131,63 @@ def main():
     plt.show()
 
 
-# def getAlpha(fillingFactor):
-#     tol = fillingFactor
-#
-#     r_tot = 200
-#     r_max = 50
-#     r_min = 1
-#
-#     r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
-#
-#     m = np.linspace(r_min**2, r_max**2, 20)
-#     dm = m[1]-m[0]
-#     N = []
-#     for mass in m:
-#         Ncount = 0
-#         for j in range(len(r)):
-#             if mass <= r[j]**2 < mass + dm:
-#                 Ncount += 1
-#         N.append(Ncount)
-#     N = np.array(N)
-#
-#     N_diff = []
-#     for i in range(1, len(N)):
-#         N_diff.append(N[i-1]-N[i])
-#     N_diff.append(0)
-#     N_diff = abs(np.array(N_diff))
-#
-#     noZeroMask = N_diff > 0
-#     N_plot = N_diff[noZeroMask]
-#     m_plot = m[noZeroMask]
-#
-#     log_m = np.log(m_plot)
-#     log_N = np.log(N_plot)
-#
-#     p = np.poly1d(np.polyfit(log_m, log_N, 1))
-#     alpha = p.coefficients[0]
-#     return alpha
+def getAlpha(fillingFactor):
+    tol = fillingFactor
 
-# alphas = []
-# for i in range(4,8):
-#     tempAlphas = []
-#     for j in range(1,100):
-#         tempAlphas.append(getAlpha(i/10))
-#     alphas.append(np.average(np.array(tempAlphas)))
-# print(alphas)
+    temp = 20  # temperature in Kelvin
+    rho = 1408
+
+    r_tot = 200
+    r_max = 50
+    r_min = 1
+
+    r, x, y = circlePack2D(tol, r_tot, r_min, r_max)
+
+    # graphs log/log plot and finds alpha value
+    # Delta m
+    m = np.arange(r_min ** 2, r_max ** 2, 1)
+    dm = m[1] - m[0]
+    N = []
+    for mass in m:
+        Ncount = 0
+        for j in range(len(r)):
+            if mass <= r[j] ** 2 < mass + dm:
+                Ncount += 1
+        N.append(Ncount)
+    N = np.array(N)
+
+    N_diff = []
+    for i in range(1, len(N)):
+        N_diff.append(N[i - 1] - N[i])
+    N_diff.append(0)
+    N_diff = abs(np.array(N_diff))
+
+    noZeroMask = N_diff > 0
+    mNoZero = m[noZeroMask]
+    NNoZero = N_diff[noZeroMask]
+    lessOnes = np.where(NNoZero == 1)[0][5]
+
+    log_m = np.log(mNoZero[0:lessOnes])
+    log_N = np.log(NNoZero[0:lessOnes])
+    # N_plot = N_diff[noZeroMask]
+    # m_plot = m[noZeroMask]
 
 
-main()
+    p = np.poly1d(np.polyfit(log_m, log_N, 1))
+    alpha = p.coefficients[0]
+    return -1*alpha
+
+alphas = []
+tols = [0.4, 0.5, 0.6, 0.65, 0.7, 0.75]
+for i in tols:
+    tempAlphas = []
+    for j in range(1,5):
+        tempAlphas.append(getAlpha(i))
+    alphas.append(np.average(np.array(tempAlphas)))
+plt.scatter(tols, alphas)
+plt.show()
+print(alphas)
+
+
+
+#main()
